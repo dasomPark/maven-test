@@ -5,20 +5,30 @@ import './Bearthday.css';
 
 const Bearthday = () => {
     const [date, setDate] = useState(new Date(2020, 3, 22));
+    const [lastBirthday, setLastBirthday] = useState(null);
     const [iamges, setImages] = useState([]);
+    
     const getImageUrl = (fileName) => {
-        return `https://epic.gsfc.nasa.gov/archive/enhanced/${formatDate(date, '/')}/png/${fileName}.png`;
+        return `https://epic.gsfc.nasa.gov/archive/enhanced/${formatDate(lastBirthday, '/')}/png/${fileName}.png`;
     }
 
     useEffect(() => {
-        axios.get(`https://epic.gsfc.nasa.gov/api/enhanced/date/${formatDate(date)}`)
+        if (lastBirthday === null) return;
+        axios.get(`https://epic.gsfc.nasa.gov/api/enhanced/date/${formatDate(lastBirthday)}`)
             .then(({data}) => {
-                setImages(data.map(d => d.image));
+                if(data.length === 0) {
+                    let newDate = new Date(lastBirthday);
+                    newDate.setDate(newDate.getDate() + 1);
+                    setLastBirthday(getLastBirthday(newDate));
+                } else {
+                    setImages(data.map(d => d.image));
+                }
+                
             })
             .catch(err => {
-                console.err(err);
+                console.log(err);
             })
-    }, [date]);
+    }, [lastBirthday]);
 
     return (
         <div className="bearthdayContainer">
@@ -42,13 +52,15 @@ const Bearthday = () => {
                         day: 'day'
                     }}
                 />
-                <button className="bearthdayButton">Submit</button>
+                <button className="bearthdayButton" onClick={() => {
+                    setLastBirthday(getLastBirthday(date));
+                }}>Submit</button>
             </div>
             <div className="bearthdayImagesContainer">
                 {
                     iamges.map((image, idx) => {
                         return (
-                            <img key={idx} src={getImageUrl(image)} width="200px" height="auto"/>
+                            <img className="bearthdayImage" key={idx} src={getImageUrl(image)}/>
                         )
                     })
                 }
@@ -66,7 +78,19 @@ const formatDate = (date, seperator = '-') => {
     if(month.length < 2) month = '0' + month;
     if(day.length < 2) day = '0' + day;
 
-    return [year, month, day].join(seperator)
+    return [year, month, day].join(seperator);
+}
+
+const getLastBirthday = (date) => {
+    let today = new Date();
+    let newDate = new Date(date);
+    newDate.setFullYear(today.getFullYear());
+
+    if(today.getTime() < newDate.getTime()) {
+        newDate.setFullYear(today.getFullYear() - 1);
+    }
+
+    return newDate;
 }
 
 export default Bearthday;
