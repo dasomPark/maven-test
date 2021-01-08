@@ -1,6 +1,8 @@
 .bearthdayContainer {
     width: 50%;
     margin: auto;
+
+    font-family: 'Helvetica Neue';
 }
 
 .bearthdaySelectContainer {
@@ -26,7 +28,7 @@
 }
 
 .bearthdayButton {
-    margin: 10x;
+    margin: 10px;
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -35,6 +37,14 @@
 
     background-color: #00856f;
     color: #ffffff;
+}
+
+    .bearthdayButton:disabled {
+        background-color: #808080;
+    }
+
+.bearthdayImagesContainer {
+    text-align: center;
 }
 
 .bearthdayImage {

@@ -6,7 +6,12 @@ import './Bearthday.css';
 const Bearthday = () => {
     const [date, setDate] = useState(new Date(2020, 3, 22));
     const [lastBirthday, setLastBirthday] = useState(null);
-    const [iamges, setImages] = useState([]);
+
+    const [images, setImages] = useState([]);
+    const [imageIndex, setImageIndex] = useState(0);
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState('');
     
     const getImageUrl = (fileName) => {
         return `https://epic.gsfc.nasa.gov/archive/enhanced/${formatDate(lastBirthday, '/')}/png/${fileName}.png`;
@@ -14,6 +19,8 @@ const Bearthday = () => {
 
     useEffect(() => {
         if (lastBirthday === null) return;
+        setIsLoading(true);
+
         axios.get(`https://epic.gsfc.nasa.gov/api/enhanced/date/${formatDate(lastBirthday)}`)
             .then(({data}) => {
                 if(data.length === 0) {
@@ -22,8 +29,15 @@ const Bearthday = () => {
                     setLastBirthday(getLastBirthday(newDate));
                 } else {
                     setImages(data.map(d => d.image));
+                    setImageIndex(0);
+                    setIsLoading(false);
+
+                    if(formatDate(lastBirthday) === formatDate(date)) {
+                        setMessage(`Happy Bearthday! ${formatDate(lastBirthday)}`);
+                    } else {
+                        setMessage(`Happy Bearthday! Closest date match is ${formatDate(lastBirthday)}`);
+                    }
                 }
-                
             })
             .catch(err => {
                 console.log(err);
@@ -58,11 +72,23 @@ const Bearthday = () => {
             </div>
             <div className="bearthdayImagesContainer">
                 {
-                    iamges.map((image, idx) => {
-                        return (
-                            <img className="bearthdayImage" key={idx} src={getImageUrl(image)}/>
-                        )
-                    })
+                    isLoading &&
+                        <h3>Loading... Please wait</h3>
+                }
+                {
+                    !isLoading && images.length > 0 &&
+                        <>
+                            <h3>{ message }</h3>
+                            <img className="bearthdayImage" src={getImageUrl(images[imageIndex])}/>
+                            <div>
+                                <button className="bearthdayButton" disabled={imageIndex === 0}  onClick={() => {
+                                    setImageIndex(imageIndex - 1);
+                                }}>Prev</button>
+                                <button className="bearthdayButton" disabled={imageIndex >= images.length - 1} onClick={() => {
+                                    setImageIndex(imageIndex + 1);
+                                }}>Next</button>
+                            </div>
+                        </>
                 }
             </div>
         </div>
